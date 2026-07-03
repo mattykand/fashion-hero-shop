@@ -1,0 +1,218 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import { Mail } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  formatCount,
+  formatPLN,
+  formatPercent,
+  formatSignedPercent,
+  marginDeltaPercent,
+} from "@/lib/seller-analytics";
+import type { SellerAnalyticsData, SellerAnalyticsVariant } from "@/types/seller-analytics";
+
+const CONCIERGE_FORM_URL = "https://forms.gle/placeholder";
+
+interface SellerAnalyticsExperienceProps {
+  data: SellerAnalyticsData;
+  variant: SellerAnalyticsVariant;
+  isDemo: boolean;
+}
+
+// Shared transition for every blurred value — same timing so the whole
+// card set reveals together instead of popping in piecemeal.
+const REVEAL_TRANSITION = "transition-all duration-700 ease-out";
+
+export function SellerAnalyticsExperience({
+  data,
+  variant,
+  isDemo,
+}: SellerAnalyticsExperienceProps) {
+  // A personalized concierge link (real params in the URL) is already
+  // addressed to one seller, so it reveals immediately — no email gate.
+  const [revealed, setRevealed] = useState(!isDemo);
+
+  const marginDelta = marginDeltaPercent(data.netMargin, data.catMedianMargin);
+  const isBelowMedian = marginDelta < 0;
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setRevealed(true);
+  }
+
+  return (
+    <main className="mx-auto max-w-2xl px-6 py-12 sm:py-16">
+      {!revealed && (
+        <span className="inline-block rounded-full bg-primary px-3 py-1 text-xs font-semibold tracking-wide text-primary-foreground">
+          WKRÓTCE
+        </span>
+      )}
+
+      <h1
+        className={cn(
+          "mt-4 font-bold tracking-tight text-gray-900",
+          revealed ? "text-2xl" : "text-3xl sm:text-4xl"
+        )}
+      >
+        {revealed ? <>Cześć, {data.name}</> : "Twoja marża vs. mediana kategorii. W jednym widoku."}
+      </h1>
+
+      {revealed && data.shopName && (
+        <p className="mt-1 text-sm text-gray-500">{data.shopName}</p>
+      )}
+
+      {revealed && isDemo && (
+        <span className="mt-3 inline-block rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold tracking-wide text-gray-600">
+          DANE PRZYKŁADOWE
+        </span>
+      )}
+
+      {!revealed && (
+        <p className="mt-4 max-w-xl text-gray-500">
+          Zobacz swoją marżę netto i zwroty na tle innych sprzedawców w Twojej
+          kategorii — zanim podejmiesz kolejną decyzję cenową.
+        </p>
+      )}
+
+      <div className="mt-8 space-y-4">
+        <div className="rounded-2xl border border-gray-100 bg-white p-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+            Marża netto / zamówienie
+          </p>
+          <p
+            aria-hidden={!revealed}
+            className={cn(
+              "mt-2 text-3xl font-bold text-gray-900",
+              REVEAL_TRANSITION,
+              revealed ? "blur-none opacity-100" : "blur-sm opacity-60 select-none"
+            )}
+          >
+            {formatPLN(data.netMargin)}
+          </p>
+          {variant === "B" && (
+            <p
+              aria-hidden={!revealed}
+              className={cn(
+                "mt-2 text-sm font-medium",
+                REVEAL_TRANSITION,
+                "delay-100",
+                revealed
+                  ? cn("blur-none opacity-100", isBelowMedian ? "text-red-600" : "text-emerald-600")
+                  : "blur-sm opacity-60 select-none text-gray-900"
+              )}
+            >
+              {formatSignedPercent(marginDelta)} vs mediana {formatPLN(data.catMedianMargin)}
+            </p>
+          )}
+        </div>
+
+        {variant === "A" ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <MetricBlock
+              label="GMV"
+              value={formatPLN(data.gmv)}
+              hint="łączna wartość sprzedaży"
+              revealed={revealed}
+            />
+            <MetricBlock
+              label="Zamówienia"
+              value={formatCount(data.orders)}
+              hint="w tym okresie"
+              revealed={revealed}
+            />
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-gray-100 bg-white p-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Zwroty</p>
+            <p
+              aria-hidden={!revealed}
+              className={cn(
+                "mt-2 text-xl font-semibold text-gray-900",
+                REVEAL_TRANSITION,
+                revealed ? "blur-none opacity-100" : "blur-sm opacity-60 select-none"
+              )}
+            >
+              {formatPercent(data.returnRate)}{" "}
+              <span className="font-normal text-gray-400">
+                vs {formatPercent(data.catMedianReturn)} w kategorii
+              </span>
+            </p>
+          </div>
+        )}
+      </div>
+
+      {!revealed && (
+        <div className="mt-8 max-w-md rounded-2xl border border-gray-100 bg-white p-6 sm:p-8">
+          <h2 className="text-sm font-semibold text-gray-900">Zobacz swoją marżę</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Zostaw email, żeby odblokować podgląd swoich liczb.
+          </p>
+          <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <div className="relative flex-1">
+              <Mail className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input
+                type="email"
+                required
+                placeholder="twoj@email.pl"
+                className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pr-3 pl-10 text-sm text-gray-900 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+              />
+            </div>
+            <Button type="submit" size="lg" className="sm:w-auto">
+              Pokaż moją marżę
+            </Button>
+          </form>
+          <p className="mt-4 text-xs text-gray-400">
+            To wczesny podgląd. Twój zapis wpływa na decyzję o budowie.
+          </p>
+        </div>
+      )}
+
+      {variant === "B" && (
+        <a
+          href={CONCIERGE_FORM_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-hidden={!revealed}
+          tabIndex={revealed ? undefined : -1}
+          className={cn(
+            "mt-8 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity duration-700 delay-300 hover:opacity-90 sm:w-auto",
+            revealed ? "opacity-100" : "pointer-events-none opacity-0"
+          )}
+        >
+          Chcę indywidualną analizę marży →
+        </a>
+      )}
+    </main>
+  );
+}
+
+function MetricBlock({
+  label,
+  value,
+  hint,
+  revealed,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  revealed: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-5">
+      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{label}</p>
+      <p
+        aria-hidden={!revealed}
+        className={cn(
+          "mt-2 text-2xl font-bold text-gray-900",
+          REVEAL_TRANSITION,
+          revealed ? "blur-none opacity-100" : "blur-sm opacity-60 select-none"
+        )}
+      >
+        {value}
+      </p>
+      <p className="mt-1 text-xs text-gray-400">{hint}</p>
+    </div>
+  );
+}
