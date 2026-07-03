@@ -6,6 +6,9 @@ import type {
 
 export type RawSellerAnalyticsParams = Record<string, string | string[] | undefined>;
 
+// The single query param a concierge link is encoded into, e.g. /preview?d=<token>.
+const LINK_PARAM = "d";
+
 // Test constant used when no concierge params are present in the URL.
 const DEMO_SELLER: SellerAnalyticsData = {
   name: "Kasia",
@@ -20,56 +23,102 @@ const DEMO_SELLER: SellerAnalyticsData = {
 
 const DEMO_VARIANT: SellerAnalyticsVariant = "B";
 
-const PARAM_KEYS = [
-  "name",
-  "shop",
-  "margin",
-  "cat_median",
-  "return_rate",
-  "cat_return",
-  "gmv",
-  "orders",
-] as const;
+// Short keys keep the encoded token compact.
+interface SellerLinkPayload {
+  v: SellerAnalyticsVariant;
+  n: string;
+  s: string;
+  m: number;
+  cm: number;
+  r: number;
+  cr: number;
+  g: number;
+  o: number;
+}
 
 function getParam(raw: RawSellerAnalyticsParams, key: string): string | undefined {
   const value = raw[key];
   return Array.isArray(value) ? value[0] : value;
 }
 
-function getNumberParam(
-  raw: RawSellerAnalyticsParams,
-  key: string,
-  fallback: number
-): number {
-  const value = getParam(raw, key);
-  if (value === undefined) return fallback;
-  const parsed = Number(value.replace(",", "."));
-  return Number.isFinite(parsed) ? parsed : fallback;
+function toBase64Url(input: string): string {
+  const base64 =
+    typeof Buffer !== "undefined"
+      ? Buffer.from(input, "utf-8").toString("base64")
+      : btoa(input);
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function fromBase64Url(input: string): string {
+  const base64 = input.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+  return typeof Buffer !== "undefined"
+    ? Buffer.from(padded, "base64").toString("utf-8")
+    : atob(padded);
+}
+
+/** Encodes a seller's data + variant into the single `d` token used by /preview links. */
+export function encodeSellerLink(
+  data: SellerAnalyticsData,
+  variant: SellerAnalyticsVariant
+): string {
+  const payload: SellerLinkPayload = {
+    v: variant,
+    n: data.name,
+    s: data.shopName,
+    m: data.netMargin,
+    cm: data.catMedianMargin,
+    r: data.returnRate,
+    cr: data.catMedianReturn,
+    g: data.gmv,
+    o: data.orders,
+  };
+  return toBase64Url(JSON.stringify(payload));
+}
+
+function decodeSellerLink(token: string): SellerLinkPayload | undefined {
+  try {
+    const parsed = JSON.parse(fromBase64Url(token)) as Partial<SellerLinkPayload>;
+    if (
+      typeof parsed.n !== "string" ||
+      typeof parsed.s !== "string" ||
+      typeof parsed.m !== "number" ||
+      typeof parsed.cm !== "number" ||
+      typeof parsed.r !== "number" ||
+      typeof parsed.cr !== "number" ||
+      typeof parsed.g !== "number" ||
+      typeof parsed.o !== "number"
+    ) {
+      return undefined;
+    }
+    return { ...parsed, v: parsed.v === "A" ? "A" : "B" } as SellerLinkPayload;
+  } catch {
+    return undefined;
+  }
 }
 
 export function parseSellerParams(
   raw: RawSellerAnalyticsParams
 ): SellerAnalyticsResult {
-  const isDemo = !PARAM_KEYS.some((key) => getParam(raw, key) !== undefined);
+  const token = getParam(raw, LINK_PARAM);
+  const payload = token ? decodeSellerLink(token) : undefined;
 
-  if (isDemo) {
+  if (!payload) {
     return { data: DEMO_SELLER, variant: DEMO_VARIANT, isDemo: true };
   }
 
-  const variant: SellerAnalyticsVariant = getParam(raw, "v") === "A" ? "A" : "B";
-
   const data: SellerAnalyticsData = {
-    name: getParam(raw, "name") ?? DEMO_SELLER.name,
-    shopName: getParam(raw, "shop") ?? DEMO_SELLER.shopName,
-    gmv: getNumberParam(raw, "gmv", DEMO_SELLER.gmv),
-    orders: getNumberParam(raw, "orders", DEMO_SELLER.orders),
-    netMargin: getNumberParam(raw, "margin", DEMO_SELLER.netMargin),
-    returnRate: getNumberParam(raw, "return_rate", DEMO_SELLER.returnRate),
-    catMedianMargin: getNumberParam(raw, "cat_median", DEMO_SELLER.catMedianMargin),
-    catMedianReturn: getNumberParam(raw, "cat_return", DEMO_SELLER.catMedianReturn),
+    name: payload.n,
+    shopName: payload.s,
+    gmv: payload.g,
+    orders: payload.o,
+    netMargin: payload.m,
+    returnRate: payload.r,
+    catMedianMargin: payload.cm,
+    catMedianReturn: payload.cr,
   };
 
-  return { data, variant, isDemo: false };
+  return { data, variant: payload.v, isDemo: false };
 }
 
 export function formatPLN(value: number): string {
