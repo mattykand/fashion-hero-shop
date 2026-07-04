@@ -7,6 +7,7 @@ import { CartProvider, useCart } from "./cart-provider";
 import { WishlistProvider, useWishlist } from "./wishlist-provider";
 import { QuickViewProvider } from "./quick-view-provider";
 import { AuthProvider } from "./auth-provider";
+import { SellerAnalyticsPromoModal } from "./seller-analytics-promo-modal";
 
 function ShellInner({ children }: { children: React.ReactNode }) {
   const { openCart, itemCount } = useCart();
@@ -18,6 +19,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
       <Header onCartOpen={openCart} cartCount={itemCount} wishlistCount={wishlistItems.length} />
       <main className="flex-1">{children}</main>
       <Footer />
+      <SellerAnalyticsPromoModal />
     </>
   );
 }
