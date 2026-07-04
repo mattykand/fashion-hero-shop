@@ -140,20 +140,28 @@ ukryty koszt, który seller kontroluje niezależnie od platformy — dziś go
 nie widzi, więc nie może na niego działać.
 
 **Metryki:**
-- Primary: mediana return rate per seller — delta test vs kontrola po 60
-  dniach. Odporna na Forte: obie grupy doświadczają tego samego szoku
-  rynkowego, więc różnica między grupami mierzy efekt funkcji, nie szum
-  migracji.
-- Secondary: adopcja (% sellerów testowych z `margin_revealed` ≥2×/mc,
-  PostHog); mediana marży netto per seller; GUARDRAIL: churn sellerów test
-  vs kontrola — jeśli pokazanie realnej marży napędza odejścia do Forte,
-  musimy to zobaczyć natychmiast.
+- Primary: mediana marży netto per seller — delta test vs kontrola po 60
+  dniach. Metryka na poziomie WYNIKU, nie mechanizmu: panel pokazuje kilka
+  dźwigni (zwroty, ceny vs mediana, mix SKU) i każda z nich poprawia marżę
+  — primary musi łapać wszystkie, inaczej seller działający np. ceną
+  zamiast zwrotami wyszedłby jako "porażka". Odporna na Forte: obie grupy
+  doświadczają tego samego szoku rynkowego, więc różnica między grupami
+  mierzy efekt funkcji, nie szum migracji.
+- Secondary — metryki mechanizmu (mówią DLACZEGO marża drgnęła, nie
+  decydują o sukcesie): mediana return rate per seller; % sellerów, którzy
+  zmienili ceny po zobaczeniu benchmarku; % sellerów, którzy wycofali
+  ujemno-marżowe SKU; adopcja (% sellerów testowych z `margin_revealed`
+  ≥2×/mc, PostHog); GUARDRAIL: churn sellerów test vs kontrola — jeśli
+  pokazanie realnej marży napędza odejścia do Forte, musimy to zobaczyć
+  natychmiast.
 
 **Sample:** jednostka = seller. Randomizacja 50/50 po stabilnym hashu
 seller_id, stratyfikowana po kategorii, tierze GMV i stażu (żeby drenaż
 Forte nie rozjechał grup). Sellerzy z ujemną marżą wchodzą do testu, ale
 jako osobna warstwa analizy. Min. ~450 sellerów/grupę (~900 łącznie) —
-wykrywa spadek return rate o ~2 pp przy mocy 80%, α=0.05. Analiza
+szacunek mocy dla efektu rzędu d=0.2 przy 80%, α=0.05; PRZED startem
+zweryfikować na realnym rozkładzie marży per seller (marża ma większą
+wariancję niż return rate, może wymagać większej próby). Analiza
 intention-to-treat: seller, który odszedł w trakcie, zostaje w swojej
 grupie.
 
@@ -167,9 +175,11 @@ seller nie migruje między grupami), globalny kill-switch na wypadek
 przebicia guardraila churnu.
 
 **Success criteria (zapisane PRZED danymi):**
-- SUKCES: return rate w teście ≥2 pp niżej vs kontrola (p<0.05) po 60
-  dniach + adopcja ≥40% + churn w teście nie wyższy niż w kontroli
-- PORAŻKA: brak różnicy w return rate PRZY adopcji ≥40% (używają, ale nie
+- SUKCES: mediana marży netto per seller w teście wyżej vs kontrola
+  (p<0.05) po 60 dniach + adopcja ≥40% + churn w teście nie wyższy niż w
+  kontroli. Metryki mechanizmu mówią, która dźwignia zadziałała (zwroty /
+  ceny / mix SKU) — to wejście do decyzji, co rozwijać dalej.
+- PORAŻKA: brak różnicy w marży PRZY adopcji ≥40% (używają, ale nie
   działa — kill), ALBO churn w teście wyższy o >2 pp (informacja o marży
   napędza odejścia — natychmiastowy kill-switch)
 - NIEROZSTRZYGNIĘTE: adopcja <20% — porażka dystrybucji, nie wartości;
