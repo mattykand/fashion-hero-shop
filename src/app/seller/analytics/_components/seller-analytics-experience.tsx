@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { CheckCircle2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,9 +32,16 @@ export function SellerAnalyticsExperience({
   // addressed to one seller, so it reveals immediately — no email gate.
   const [revealed, setRevealed] = useState(!isDemo);
   const [ctaSubmitted, setCtaSubmitted] = useState(false);
+  const [reactionText, setReactionText] = useState("");
+  const [reactionSubmitted, setReactionSubmitted] = useState(false);
 
   const marginDelta = marginDeltaPercent(data.netMargin, data.catMedianMargin);
   const isBelowMedian = marginDelta < 0;
+
+  function handleReactionSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setReactionSubmitted(true);
+  }
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12 sm:py-16">
@@ -155,9 +162,35 @@ export function SellerAnalyticsExperience({
 
       {variant === "B" &&
         (ctaSubmitted ? (
-          <div className="mt-8 flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-            <CheckCircle2 className="h-4 w-4 shrink-0" />
-            Zgłoszenie wysłane — skontaktujemy się w sprawie Twojej analizy.
+          <div className="mt-8 space-y-4">
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              Zgłoszenie wysłane — skontaktujemy się w sprawie Twojej analizy.
+            </div>
+
+            {reactionSubmitted ? (
+              <p className="text-sm text-gray-500">Dzięki za odpowiedź — to dla nas bardzo cenne.</p>
+            ) : (
+              <form
+                onSubmit={handleReactionSubmit}
+                className="rounded-2xl border border-gray-100 bg-white p-5"
+              >
+                <label htmlFor="reaction" className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  Co Cię najbardziej zaskoczyło w tych liczbach? (opcjonalnie)
+                </label>
+                <textarea
+                  id="reaction"
+                  value={reactionText}
+                  onChange={(event) => setReactionText(event.target.value)}
+                  rows={3}
+                  placeholder="Napisz kilka słów..."
+                  className="mt-2 w-full rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-900 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                />
+                <Button type="submit" size="sm" className="mt-3" disabled={!reactionText.trim()}>
+                  Wyślij
+                </Button>
+              </form>
+            )}
           </div>
         ) : (
           <button
