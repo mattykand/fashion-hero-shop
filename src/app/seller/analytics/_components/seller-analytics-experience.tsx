@@ -44,12 +44,7 @@ export function SellerAnalyticsExperience({
   }
 
   return (
-    <main
-      className={cn(
-        "mx-auto max-w-3xl px-6 py-12 sm:py-16",
-        revealed && !ctaSubmitted && "pb-28"
-      )}
-    >
+    <main className="mx-auto max-w-3xl px-6 py-12 sm:py-16">
       {!revealed && (
         <span className="inline-block rounded-full bg-primary px-3 py-1 text-xs font-semibold tracking-wide text-primary-foreground">
           WKRÓTCE
@@ -183,17 +178,13 @@ export function SellerAnalyticsExperience({
               />
             </div>
 
-            <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 p-4 backdrop-blur-sm">
-              <div className="mx-auto max-w-3xl px-2">
-                <button
-                  type="button"
-                  onClick={() => setCtaSubmitted(true)}
-                  className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:w-auto"
-                >
-                  Chcę indywidualną analizę marży →
-                </button>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => setCtaSubmitted(true)}
+              className="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:w-auto"
+            >
+              Chcę indywidualną analizę marży →
+            </button>
           </>
         ))}
     </main>
