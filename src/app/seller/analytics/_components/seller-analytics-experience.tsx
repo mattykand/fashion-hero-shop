@@ -129,17 +129,27 @@ export function SellerAnalyticsExperience({
             <p
               aria-hidden={!revealed}
               className={cn(
-                "mt-2 text-xs",
+                "mt-2 text-xs text-gray-500",
                 REVEAL_TRANSITION,
                 "delay-100",
-                revealed
-                  ? cn("blur-none opacity-100", isAboveReturnMedian ? "text-red-600" : "text-emerald-600")
-                  : "blur-sm opacity-60 select-none text-gray-500"
+                revealed ? "blur-none opacity-100" : "blur-sm opacity-60 select-none"
               )}
             >
-              {isAboveReturnMedian
-                ? `${formatPp(returnDelta)} pp powyżej mediany — to koszt, który bezpośrednio obniża Twoją marżę i na który masz realny wpływ.`
-                : "Poniżej mediany kategorii — utrzymaj ten wynik."}
+              {isAboveReturnMedian ? (
+                <>
+                  <span className={cn("font-medium", revealed && "text-red-500")}>
+                    {formatPp(returnDelta)} pp powyżej mediany
+                  </span>{" "}
+                  — to koszt, który bezpośrednio obniża Twoją marżę i na który masz realny wpływ.
+                </>
+              ) : (
+                <>
+                  <span className={cn("font-medium", revealed && "text-emerald-600")}>
+                    Poniżej mediany kategorii
+                  </span>{" "}
+                  — utrzymaj ten wynik.
+                </>
+              )}
             </p>
           </div>
           <RankingTeaserCard />
