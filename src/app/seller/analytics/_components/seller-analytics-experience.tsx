@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import posthog from "posthog-js";
 import { CheckCircle2, Loader2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -41,9 +42,35 @@ export function SellerAnalyticsExperience({
   const returnDelta = data.returnRate - data.catMedianReturn;
   const isAboveReturnMedian = returnDelta > 0;
 
+  // Concierge links reveal at load — capture that as its own event so
+  // "opened the link at all" is measurable without asking the seller.
+  useEffect(() => {
+    if (!isDemo) {
+      posthog.capture("margin_revealed", { mode: "concierge", seller_name: data.name });
+    }
+  }, [isDemo, data.name]);
+
   function handleReveal() {
     setStage("loading");
+    posthog.capture("margin_revealed", { mode: "demo", seller_name: data.name });
     window.setTimeout(() => setStage("revealed"), LOADING_DELAY_MS);
+  }
+
+  function handleCtaClick() {
+    const reaction = reactionText.trim();
+    posthog.capture("cta_clicked", {
+      mode: isDemo ? "demo" : "concierge",
+      seller_name: data.name,
+      reaction_provided: reaction.length > 0,
+    });
+    if (reaction) {
+      posthog.capture("reaction_submitted", {
+        mode: isDemo ? "demo" : "concierge",
+        seller_name: data.name,
+        reaction_text: reaction,
+      });
+    }
+    setCtaSubmitted(true);
   }
 
   return (
@@ -215,7 +242,7 @@ export function SellerAnalyticsExperience({
 
             <button
               type="button"
-              onClick={() => setCtaSubmitted(true)}
+              onClick={handleCtaClick}
               className="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:w-auto"
             >
               Chcę indywidualną analizę marży →
