@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   formatPLN,
   formatPercent,
+  formatPp,
   formatSignedPercent,
   marginDeltaPercent,
 } from "@/lib/seller-analytics";
@@ -37,6 +38,8 @@ export function SellerAnalyticsExperience({
   const revealed = stage === "revealed";
   const marginDelta = marginDeltaPercent(data.netMargin, data.catMedianMargin);
   const isBelowMedian = marginDelta < 0;
+  const returnDelta = data.returnRate - data.catMedianReturn;
+  const isAboveReturnMedian = returnDelta > 0;
 
   function handleReveal() {
     setStage("loading");
@@ -123,6 +126,21 @@ export function SellerAnalyticsExperience({
                 vs {formatPercent(data.catMedianReturn)} w kategorii
               </span>
             </p>
+            <p
+              aria-hidden={!revealed}
+              className={cn(
+                "mt-2 text-xs",
+                REVEAL_TRANSITION,
+                "delay-100",
+                revealed
+                  ? cn("blur-none opacity-100", isAboveReturnMedian ? "text-red-600" : "text-emerald-600")
+                  : "blur-sm opacity-60 select-none text-gray-500"
+              )}
+            >
+              {isAboveReturnMedian
+                ? `${formatPp(returnDelta)} pp powyżej mediany — to koszt, który bezpośrednio obniża Twoją marżę i na który masz realny wpływ.`
+                : "Poniżej mediany kategorii — utrzymaj ten wynik."}
+            </p>
           </div>
           <RankingTeaserCard />
           <ProductBreakdownTeaserCard />
@@ -161,7 +179,14 @@ export function SellerAnalyticsExperience({
           </div>
         ) : (
           <>
-            <div className="mt-8 rounded-2xl border border-gray-100 bg-white p-5">
+            <p className="mt-8 max-w-xl text-sm text-gray-600">
+              Dowiedz się, co wpływa na Twoją marżę netto, i porównaj wyniki
+              każdego ze swoich produktów. Znajdź sposoby na maksymalizację
+              marży — pomożemy Ci osiągnąć lepsze wyniki z pełnym panelem
+              analityki i promocji.
+            </p>
+
+            <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-5">
               <label
                 htmlFor="reaction"
                 className="text-xs font-semibold uppercase tracking-wide text-gray-400"

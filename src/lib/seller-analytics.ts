@@ -75,6 +75,13 @@ export function formatPercent(value: number): string {
   })}%`;
 }
 
+export function formatPp(value: number): string {
+  return Math.abs(value).toLocaleString("pl-PL", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+}
+
 export function marginDeltaPercent(netMargin: number, catMedianMargin: number): number {
   if (catMedianMargin === 0) return 0;
   return ((netMargin - catMedianMargin) / catMedianMargin) * 100;
