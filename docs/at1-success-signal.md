@@ -20,6 +20,8 @@ Sygnały ilościowe zbiera PostHog (EU Cloud, projekt "Default project"):
 pageviews + autocapture kliknięć + trzy custom eventy z właściwością
 `seller_name`, więc widzisz kto co zrobił bez pytania:
 
+- `promo_popup_shown` / `promo_popup_accepted` / `promo_popup_dismissed`
+  (method: later_button/close_button/backdrop/escape) — lejek popupu na sklepie
 - `margin_revealed` (mode: demo/concierge) — seller otworzył link i zobaczył liczby
 - `analysis_requested` (reaction_provided: tak/nie) — kliknął "Chcę indywidualną analizę marży"
 - `reaction_submitted` (reaction_text) — surowy cytat z pola "co Cię zaskoczyło"
