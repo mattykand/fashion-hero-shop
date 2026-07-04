@@ -14,12 +14,12 @@ interface PageProps {
 
 export default async function SellerAnalyticsPage({ searchParams }: PageProps) {
   const raw = await searchParams;
-  const { data, variant, isDemo } = parseSellerParams(raw);
+  const { data, isDemo } = parseSellerParams(raw);
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <AnalyticsHeader pageLabel="Analizuj dane" />
-      <SellerAnalyticsExperience data={data} variant={variant} isDemo={isDemo} />
+      <SellerAnalyticsExperience data={data} isDemo={isDemo} />
     </div>
   );
 }

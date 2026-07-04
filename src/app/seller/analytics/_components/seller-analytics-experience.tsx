@@ -5,17 +5,15 @@ import { CheckCircle2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  formatCount,
   formatPLN,
   formatPercent,
   formatSignedPercent,
   marginDeltaPercent,
 } from "@/lib/seller-analytics";
-import type { SellerAnalyticsData, SellerAnalyticsVariant } from "@/types/seller-analytics";
+import type { SellerAnalyticsData } from "@/types/seller-analytics";
 
 interface SellerAnalyticsExperienceProps {
   data: SellerAnalyticsData;
-  variant: SellerAnalyticsVariant;
   isDemo: boolean;
 }
 
@@ -25,7 +23,6 @@ const REVEAL_TRANSITION = "transition-all duration-700 ease-out";
 
 export function SellerAnalyticsExperience({
   data,
-  variant,
   isDemo,
 }: SellerAnalyticsExperienceProps) {
   // A personalized concierge link (real params in the URL) is already
@@ -92,59 +89,40 @@ export function SellerAnalyticsExperience({
           >
             {formatPLN(data.netMargin)}
           </p>
-          {variant === "B" && (
+          <p
+            aria-hidden={!revealed}
+            className={cn(
+              "mt-2 text-sm font-medium",
+              REVEAL_TRANSITION,
+              "delay-100",
+              revealed
+                ? cn("blur-none opacity-100", isBelowMedian ? "text-red-600" : "text-emerald-600")
+                : "blur-sm opacity-60 select-none text-gray-900"
+            )}
+          >
+            {formatSignedPercent(marginDelta)} vs mediana {formatPLN(data.catMedianMargin)}
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Zwroty</p>
             <p
               aria-hidden={!revealed}
               className={cn(
-                "mt-2 text-sm font-medium",
+                "mt-2 text-xl font-semibold text-gray-900",
                 REVEAL_TRANSITION,
-                "delay-100",
-                revealed
-                  ? cn("blur-none opacity-100", isBelowMedian ? "text-red-600" : "text-emerald-600")
-                  : "blur-sm opacity-60 select-none text-gray-900"
+                revealed ? "blur-none opacity-100" : "blur-sm opacity-60 select-none"
               )}
             >
-              {formatSignedPercent(marginDelta)} vs mediana {formatPLN(data.catMedianMargin)}
+              {formatPercent(data.returnRate)}{" "}
+              <span className="font-normal text-gray-400">
+                vs {formatPercent(data.catMedianReturn)} w kategorii
+              </span>
             </p>
-          )}
+          </div>
+          <RankingTeaserCard />
         </div>
-
-        {variant === "A" ? (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <MetricBlock
-              label="GMV"
-              value={formatPLN(data.gmv)}
-              hint="łączna wartość sprzedaży"
-              revealed={revealed}
-            />
-            <MetricBlock
-              label="Zamówienia"
-              value={formatCount(data.orders)}
-              hint="w tym okresie"
-              revealed={revealed}
-            />
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Zwroty</p>
-              <p
-                aria-hidden={!revealed}
-                className={cn(
-                  "mt-2 text-xl font-semibold text-gray-900",
-                  REVEAL_TRANSITION,
-                  revealed ? "blur-none opacity-100" : "blur-sm opacity-60 select-none"
-                )}
-              >
-                {formatPercent(data.returnRate)}{" "}
-                <span className="font-normal text-gray-400">
-                  vs {formatPercent(data.catMedianReturn)} w kategorii
-                </span>
-              </p>
-            </div>
-            <RankingTeaserCard />
-          </div>
-        )}
       </div>
 
       {!revealed && (
@@ -160,8 +138,7 @@ export function SellerAnalyticsExperience({
         </div>
       )}
 
-      {variant === "B" &&
-        (ctaSubmitted ? (
+      {ctaSubmitted ? (
           <div className="mt-8 space-y-4">
             <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
@@ -204,37 +181,8 @@ export function SellerAnalyticsExperience({
           >
             Chcę indywidualną analizę marży →
           </button>
-        ))}
-    </main>
-  );
-}
-
-function MetricBlock({
-  label,
-  value,
-  hint,
-  revealed,
-}: {
-  label: string;
-  value: string;
-  hint: string;
-  revealed: boolean;
-}) {
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{label}</p>
-      <p
-        aria-hidden={!revealed}
-        className={cn(
-          "mt-2 text-2xl font-bold text-gray-900",
-          REVEAL_TRANSITION,
-          revealed ? "blur-none opacity-100" : "blur-sm opacity-60 select-none"
         )}
-      >
-        {value}
-      </p>
-      <p className="mt-1 text-xs text-gray-400">{hint}</p>
-    </div>
+    </main>
   );
 }
 

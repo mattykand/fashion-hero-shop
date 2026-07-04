@@ -1,8 +1,4 @@
-import type {
-  SellerAnalyticsData,
-  SellerAnalyticsResult,
-  SellerAnalyticsVariant,
-} from "@/types/seller-analytics";
+import type { SellerAnalyticsData, SellerAnalyticsResult } from "@/types/seller-analytics";
 
 export type RawSellerAnalyticsParams = Record<string, string | string[] | undefined>;
 
@@ -17,8 +13,6 @@ const DEMO_SELLER: SellerAnalyticsData = {
   catMedianMargin: 638,
   catMedianReturn: 18.4,
 };
-
-const DEMO_VARIANT: SellerAnalyticsVariant = "B";
 
 const PARAM_KEYS = [
   "name",
@@ -53,10 +47,8 @@ export function parseSellerParams(
   const isDemo = !PARAM_KEYS.some((key) => getParam(raw, key) !== undefined);
 
   if (isDemo) {
-    return { data: DEMO_SELLER, variant: DEMO_VARIANT, isDemo: true };
+    return { data: DEMO_SELLER, isDemo: true };
   }
-
-  const variant: SellerAnalyticsVariant = getParam(raw, "v") === "A" ? "A" : "B";
 
   const data: SellerAnalyticsData = {
     name: getParam(raw, "name") ?? DEMO_SELLER.name,
@@ -69,15 +61,11 @@ export function parseSellerParams(
     catMedianReturn: getNumberParam(raw, "cat_return", DEMO_SELLER.catMedianReturn),
   };
 
-  return { data, variant, isDemo: false };
+  return { data, isDemo: false };
 }
 
 export function formatPLN(value: number): string {
   return `${value.toLocaleString("pl-PL")} PLN`;
-}
-
-export function formatCount(value: number): string {
-  return value.toLocaleString("pl-PL");
 }
 
 export function formatPercent(value: number): string {

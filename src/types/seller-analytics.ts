@@ -1,5 +1,3 @@
-export type SellerAnalyticsVariant = "A" | "B";
-
 export interface SellerAnalyticsData {
   name: string;
   shopName: string;
@@ -13,6 +11,5 @@ export interface SellerAnalyticsData {
 
 export interface SellerAnalyticsResult {
   data: SellerAnalyticsData;
-  variant: SellerAnalyticsVariant;
   isDemo: boolean;
 }

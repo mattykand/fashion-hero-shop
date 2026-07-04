@@ -26,16 +26,15 @@ Styl kodu:
 
 Reguły domenowe:
 - Waluta: PLN, format "1 248 PLN" (spacja jako separator tysięcy)
-- Wariant A: tylko marża netto + GMV + zamówienia; bez benchmarku
-- Wariant B: marża + benchmark kategorii + jeden wskazany koszt (return_rate)
-- Każdy seller ma unikalny URL z parametrami: ?seller=id&v=A|B&margin=412&
+- Jeden ekran wyniku: marża + benchmark kategorii + jeden wskazany koszt (return_rate).
+  Brak wariantu A — pełny framing dla każdego sellera.
+- Każdy seller ma unikalny URL z parametrami: ?seller=id&margin=412&
   cat_median=638&return_rate=21.2&cat_return=18.4
 - Badge "DANE PRZYKŁADOWE" w demo mode, ukryty gdy URL zawiera seller param
 
 Model danych:
 SellerData { name, shop_name, category, gmv, orders, net_margin,
   return_rate, cat_median_margin, cat_median_return }
-Variant: "A" | "B"
 
 ALWAYS:
 - Wzoruj się na /app/prototype/page.tsx — standalone strona z własnym headerem

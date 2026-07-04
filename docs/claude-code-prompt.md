@@ -28,10 +28,9 @@ Czyta dane z URL params. Dwa tryby:
 **Demo** (brak params): hardcoded dane Kasi + badge "DANE PRZYKŁADOWE"
 **Concierge** (params obecne): dane z URL, brak badge
 
-Params: `?v=A|B&name=X&shop=X&margin=X&cat_median=X&return_rate=X&cat_return=X&gmv=X&orders=X`
+Params: `?name=X&shop=X&margin=X&cat_median=X&return_rate=X&cat_return=X&gmv=X&orders=X`
 
-**Wariant A**: 3 karty — marża netto, GMV, zamówienia. Bez benchmarku.
-**Wariant B**: marża + delta vs mediana (czerwony gdy poniżej) + karta kosztu (return rate vs kategoria) + CTA button → `https://forms.gle/placeholder`
+Jeden ekran wyniku (brak wariantu A): marża + delta vs mediana (czerwony gdy poniżej) + karta kosztu (return rate vs kategoria) + CTA button → `https://forms.gle/placeholder`
 
 Format liczb: `toLocaleString('pl-PL')` → "1 248 PLN"
 
