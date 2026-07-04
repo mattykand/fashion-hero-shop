@@ -125,3 +125,53 @@ założenie.
   drenażu, jej reakcja mierzy decyzję o migracji, nie reakcję na framing.
   Plus jedno pytanie kontrolne o Forte w rozmowie, żeby odseparować wzmianki
   o prowizji "z rynku" od wywołanych naszym ekranem.
+
+---
+
+## A/B Test Design — True Margin Statement (pełna funkcja, po AT1)
+
+Design właściwego eksperymentu na produkcji — następny krok, jeśli AT1
+(concierge) przejdzie. Uwzględnia korekty po stress teście Forte.
+
+**Hipoteza:** Jeśli udostępnimy sellerom panel marży netto (marża +
+benchmark kategorii + zwroty wskazane jako lewar), to po 60 dniach return
+rate w grupie testowej spadnie względem kontroli, bo zwroty to największy
+ukryty koszt, który seller kontroluje niezależnie od platformy — dziś go
+nie widzi, więc nie może na niego działać.
+
+**Metryki:**
+- Primary: mediana return rate per seller — delta test vs kontrola po 60
+  dniach. Odporna na Forte: obie grupy doświadczają tego samego szoku
+  rynkowego, więc różnica między grupami mierzy efekt funkcji, nie szum
+  migracji.
+- Secondary: adopcja (% sellerów testowych z `margin_revealed` ≥2×/mc,
+  PostHog); mediana marży netto per seller; GUARDRAIL: churn sellerów test
+  vs kontrola — jeśli pokazanie realnej marży napędza odejścia do Forte,
+  musimy to zobaczyć natychmiast.
+
+**Sample:** jednostka = seller. Randomizacja 50/50 po stabilnym hashu
+seller_id, stratyfikowana po kategorii, tierze GMV i stażu (żeby drenaż
+Forte nie rozjechał grup). Sellerzy z ujemną marżą wchodzą do testu, ale
+jako osobna warstwa analizy. Min. ~450 sellerów/grupę (~900 łącznie) —
+wykrywa spadek return rate o ~2 pp przy mocy 80%, α=0.05. Analiza
+intention-to-treat: seller, który odszedł w trakcie, zostaje w swojej
+grupie.
+
+**Czas:** 60 dni, odczyt pośredni po 30. Nie krócej — zwrot w fashion
+spływa 14-30 dni po zamówieniu, plus ~2 tyg. na adopcję panelu; krótszy
+test zmierzy zamówienia, których zwroty jeszcze nie wróciły.
+
+**Feature flag:** `true-margin-statement` w PostHog (feature flagi już
+dostępne w zintegrowanym SDK): rollout 50% po hashu seller_id (stabilny —
+seller nie migruje między grupami), globalny kill-switch na wypadek
+przebicia guardraila churnu.
+
+**Success criteria (zapisane PRZED danymi):**
+- SUKCES: return rate w teście ≥2 pp niżej vs kontrola (p<0.05) po 60
+  dniach + adopcja ≥40% + churn w teście nie wyższy niż w kontroli
+- PORAŻKA: brak różnicy w return rate PRZY adopcji ≥40% (używają, ale nie
+  działa — kill), ALBO churn w teście wyższy o >2 pp (informacja o marży
+  napędza odejścia — natychmiastowy kill-switch)
+- NIEROZSTRZYGNIĘTE: adopcja <20% — porażka dystrybucji, nie wartości;
+  naprawić discovery i powtórzyć, nie interpretować jako werdyktu o
+  koncepcie
