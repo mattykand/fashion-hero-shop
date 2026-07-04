@@ -1,4 +1,17 @@
-# AT1 — Sygnał sukcesu (zdefiniowany PRZED testem)
+# AT1 — Definicja testu
+
+## Krok 1: Typ prototypu
+
+**Wybór: Wizard of Oz.**
+
+Uzasadnienie (1 zdanie): testujemy value delivery — czy seller doceni realną
+informację o swojej marży i benchmarku na tle kategorii — a dostarczamy ją
+"udając" automatyzację (dane ręcznie wpisane w URL params, "indywidualna
+analiza" po CTA to w praktyce ręczna obsługa concierge), więc to nie smoke
+test (nie pytamy tylko "czy klikną") ani interaktywny mock (nie testujemy
+"czy ogarną UI") — pytamy, czy wartość informacji realnie ich rusza.
+
+## Krok 3: Sygnał sukcesu (zdefiniowany PRZED testem)
 
 Bazuje na OUTCOME z `at1-feature-spec-claude-code.md`:
 > ">60% sellerów reaguje motywacyjnie; <20% spontanicznie wspomina prowizję"
