@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { CheckCircle2, Lock, Mail } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,11 +35,6 @@ export function SellerAnalyticsExperience({
 
   const marginDelta = marginDeltaPercent(data.netMargin, data.catMedianMargin);
   const isBelowMedian = marginDelta < 0;
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setRevealed(true);
-  }
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12 sm:py-16">
@@ -149,25 +144,12 @@ export function SellerAnalyticsExperience({
         <div className="mt-8 max-w-md rounded-2xl border border-gray-100 bg-white p-6 sm:p-8">
           <h2 className="text-sm font-semibold text-gray-900">Zobacz swoją marżę</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Zostaw email, żeby odblokować podgląd swoich liczb.
+            Sprawdź, jak Twoje liczby wypadają na tle kategorii.
           </p>
-          <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <div className="relative flex-1">
-              <Mail className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <input
-                type="email"
-                required
-                placeholder="twoj@email.pl"
-                className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pr-3 pl-10 text-sm text-gray-900 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-              />
-            </div>
-            <Button type="submit" size="lg" className="sm:w-auto">
-              Pokaż moją marżę
-            </Button>
-          </form>
-          <p className="mt-4 text-xs text-gray-400">
-            To wczesny podgląd. Twój zapis wpływa na decyzję o budowie.
-          </p>
+          <Button onClick={() => setRevealed(true)} size="lg" className="mt-4 w-full sm:w-auto">
+            Pokaż moją marżę
+          </Button>
+          <p className="mt-4 text-xs text-gray-400">To wczesny podgląd funkcji, która jeszcze nie istnieje.</p>
         </div>
       )}
 
