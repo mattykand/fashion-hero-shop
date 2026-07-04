@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { CheckCircle2, Lock } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, Loader2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,31 +17,39 @@ interface SellerAnalyticsExperienceProps {
   isDemo: boolean;
 }
 
+type Stage = "locked" | "loading" | "revealed";
+
 // Shared transition for every blurred value — same timing so the whole
 // card set reveals together instead of popping in piecemeal.
 const REVEAL_TRANSITION = "transition-all duration-700 ease-out";
+const LOADING_DELAY_MS = 900;
 
 export function SellerAnalyticsExperience({
   data,
   isDemo,
 }: SellerAnalyticsExperienceProps) {
   // A personalized concierge link (real params in the URL) is already
-  // addressed to one seller, so it reveals immediately — no email gate.
-  const [revealed, setRevealed] = useState(!isDemo);
+  // addressed to one seller, so it reveals immediately — no gate, no loading beat.
+  const [stage, setStage] = useState<Stage>(isDemo ? "locked" : "revealed");
   const [ctaSubmitted, setCtaSubmitted] = useState(false);
   const [reactionText, setReactionText] = useState("");
-  const [reactionSubmitted, setReactionSubmitted] = useState(false);
 
+  const revealed = stage === "revealed";
   const marginDelta = marginDeltaPercent(data.netMargin, data.catMedianMargin);
   const isBelowMedian = marginDelta < 0;
 
-  function handleReactionSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setReactionSubmitted(true);
+  function handleReveal() {
+    setStage("loading");
+    window.setTimeout(() => setStage("revealed"), LOADING_DELAY_MS);
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12 sm:py-16">
+    <main
+      className={cn(
+        "mx-auto max-w-3xl px-6 py-12 sm:py-16",
+        revealed && !ctaSubmitted && "pb-28"
+      )}
+    >
       {!revealed && (
         <span className="inline-block rounded-full bg-primary px-3 py-1 text-xs font-semibold tracking-wide text-primary-foreground">
           WKRÓTCE
@@ -104,7 +112,7 @@ export function SellerAnalyticsExperience({
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-2xl border border-gray-100 bg-white p-5">
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Zwroty</p>
             <p
@@ -122,68 +130,72 @@ export function SellerAnalyticsExperience({
             </p>
           </div>
           <RankingTeaserCard />
+          <ProductBreakdownTeaserCard />
         </div>
-
-        <ProductBreakdownTeaserCard />
       </div>
 
-      {!revealed && (
+      {stage !== "revealed" && (
         <div className="mt-8 max-w-md rounded-2xl border border-gray-100 bg-white p-6 sm:p-8">
-          <h2 className="text-sm font-semibold text-gray-900">Zobacz swoją marżę</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Sprawdź, jak Twoje liczby wypadają na tle kategorii.
-          </p>
-          <Button onClick={() => setRevealed(true)} size="lg" className="mt-4 w-full sm:w-auto">
-            Pokaż moją marżę
-          </Button>
-          <p className="mt-4 text-xs text-gray-400">To wczesny podgląd funkcji, która jeszcze nie istnieje.</p>
+          {stage === "loading" ? (
+            <div className="flex items-center gap-3 py-1 text-gray-500">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <span className="text-sm font-medium">Analizujemy Twoją marżę...</span>
+            </div>
+          ) : (
+            <>
+              <h2 className="text-sm font-semibold text-gray-900">Zobacz swoją marżę</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Sprawdź, jak Twoje liczby wypadają na tle kategorii.
+              </p>
+              <Button onClick={handleReveal} size="lg" className="mt-4 w-full sm:w-auto">
+                Pokaż moją marżę
+              </Button>
+              <p className="mt-4 text-xs text-gray-400">
+                To wczesny podgląd funkcji, która jeszcze nie istnieje.
+              </p>
+            </>
+          )}
         </div>
       )}
 
-      {ctaSubmitted ? (
-          <div className="mt-8 space-y-4">
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
-              Zgłoszenie wysłane — skontaktujemy się w sprawie Twojej analizy.
-            </div>
-
-            {reactionSubmitted ? (
-              <p className="text-sm text-gray-500">Dzięki za odpowiedź — to dla nas bardzo cenne.</p>
-            ) : (
-              <form
-                onSubmit={handleReactionSubmit}
-                className="rounded-2xl border border-gray-100 bg-white p-5"
-              >
-                <label htmlFor="reaction" className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                  Co Cię najbardziej zaskoczyło w tych liczbach? (opcjonalnie)
-                </label>
-                <textarea
-                  id="reaction"
-                  value={reactionText}
-                  onChange={(event) => setReactionText(event.target.value)}
-                  rows={3}
-                  placeholder="Napisz kilka słów..."
-                  className="mt-2 w-full rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-900 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                />
-                <Button type="submit" size="sm" className="mt-3" disabled={!reactionText.trim()}>
-                  Wyślij
-                </Button>
-              </form>
-            )}
+      {revealed &&
+        (ctaSubmitted ? (
+          <div className="mt-8 flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            Zgłoszenie wysłane — skontaktujemy się w sprawie Twojej analizy.
           </div>
         ) : (
-          <button
-            type="button"
-            disabled={!revealed}
-            onClick={() => setCtaSubmitted(true)}
-            className={cn(
-              "mt-8 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity duration-700 delay-300 hover:opacity-90 disabled:pointer-events-none sm:w-auto",
-              revealed ? "opacity-100" : "opacity-0"
-            )}
-          >
-            Chcę indywidualną analizę marży →
-          </button>
-        )}
+          <>
+            <div className="mt-8 rounded-2xl border border-gray-100 bg-white p-5">
+              <label
+                htmlFor="reaction"
+                className="text-xs font-semibold uppercase tracking-wide text-gray-400"
+              >
+                Co Cię najbardziej zaskoczyło w tych liczbach? (opcjonalnie)
+              </label>
+              <textarea
+                id="reaction"
+                value={reactionText}
+                onChange={(event) => setReactionText(event.target.value)}
+                rows={2}
+                placeholder="Napisz kilka słów..."
+                className="mt-2 w-full rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-900 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+              />
+            </div>
+
+            <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 p-4 backdrop-blur-sm">
+              <div className="mx-auto max-w-3xl px-2">
+                <button
+                  type="button"
+                  onClick={() => setCtaSubmitted(true)}
+                  className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:w-auto"
+                >
+                  Chcę indywidualną analizę marży →
+                </button>
+              </div>
+            </div>
+          </>
+        ))}
     </main>
   );
 }

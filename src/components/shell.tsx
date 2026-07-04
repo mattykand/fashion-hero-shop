@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { AnnouncementBar } from "./announcement-bar";
 import { Header } from "./header";
 import { Footer } from "./footer";
@@ -9,9 +10,24 @@ import { QuickViewProvider } from "./quick-view-provider";
 import { AuthProvider } from "./auth-provider";
 import { SellerAnalyticsPromoModal } from "./seller-analytics-promo-modal";
 
+// Standalone pages that ship their own header and shouldn't carry the
+// shop's nav/announcement bar/footer — they aren't shopping surfaces.
+const BARE_ROUTE_PREFIXES = ["/seller/analytics"];
+
 function ShellInner({ children }: { children: React.ReactNode }) {
   const { openCart, itemCount } = useCart();
   const { wishlistItems } = useWishlist();
+  const pathname = usePathname();
+  const isBareRoute = BARE_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+
+  if (isBareRoute) {
+    return (
+      <>
+        {children}
+        <SellerAnalyticsPromoModal />
+      </>
+    );
+  }
 
   return (
     <>
