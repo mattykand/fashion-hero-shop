@@ -58,7 +58,7 @@ export function SellerAnalyticsExperience({
 
   function handleCtaClick() {
     const reaction = reactionText.trim();
-    posthog.capture("cta_clicked", {
+    posthog.capture("analysis_requested", {
       mode: isDemo ? "demo" : "concierge",
       seller_name: data.name,
       reaction_provided: reaction.length > 0,

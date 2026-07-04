@@ -21,7 +21,7 @@ pageviews + autocapture kliknięć + trzy custom eventy z właściwością
 `seller_name`, więc widzisz kto co zrobił bez pytania:
 
 - `margin_revealed` (mode: demo/concierge) — seller otworzył link i zobaczył liczby
-- `cta_clicked` (reaction_provided: tak/nie) — kliknął "Chcę indywidualną analizę marży"
+- `analysis_requested` (reaction_provided: tak/nie) — kliknął "Chcę indywidualną analizę marży"
 - `reaction_submitted` (reaction_text) — surowy cytat z pola "co Cię zaskoczyło"
 
 Reakcję emocjonalną (motywacyjna/defensywna) nadal oceniasz ręcznie z
@@ -36,7 +36,7 @@ notatka — cokolwiek, byle jedno):
       "co mogę z tym zrobić") / obojętna / defensywna (wina prowizji, platformy)
       — ręcznie, z rozmowy
 - [ ] **Kliknięcie CTA** "Chcę indywidualną analizę marży" — z PostHog
-      (`cta_clicked`, filtruj po seller_name)
+      (`analysis_requested`, filtruj po seller_name)
 - [ ] **Odpowiedź w polu "co Cię zaskoczyło"** — z PostHog
       (`reaction_submitted.reaction_text` — surowy cytat)
 - [ ] **Spontaniczne wspomnienie prowizji** jako przyczyny niskiej marży —
